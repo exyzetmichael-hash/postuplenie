@@ -315,6 +315,23 @@
       gap: 10px;
     }
     .card-title { font-size: 15.5px; font-weight: 700; margin: 0 0 2px; }
+    .card-title a {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px dashed var(--border-light);
+    }
+    .card-title a:hover {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .card-title a::after {
+      content: "↗";
+      font-size: 11px;
+      margin-left: 4px;
+      color: var(--text-faint);
+      vertical-align: super;
+    }
+    .card-title a:hover::after { color: var(--accent); }
     .card-vuz { font-size: 12.5px; color: var(--accent); font-weight: 700; }
     .card-meta { font-size: 11.5px; color: var(--text-faint); margin-top: 2px; }
 
@@ -749,6 +766,8 @@
        egeCheckNeeded  — true → бейдж «⚠️ уточнить набор ЕГЭ на сайте вуза»
        unavailable     — true → программа недоступна с нашим набором ЕГЭ
        unavailableReason — причина недоступности
+       url             — ссылка на официальную страницу программы (null = нет)
+       city            — город программы: 'Санкт-Петербург' | 'Москва'
      ════════════════════════════════════════════════════════════════════ */
 
   const PROGRAMS = [
@@ -1380,6 +1399,22 @@
     return out;
   }
 
+  // Экранирование значений, попадающих в HTML-атрибуты/текст (на случай данных извне)
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, ch => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[ch]));
+  }
+
+  // Название программы: ссылка на офиц. страницу, если задан url; иначе просто текст
+  function programNameHtml(program) {
+    const name = escapeHtml(program.name);
+    if (program.url) {
+      return `<a href="${escapeHtml(program.url)}" target="_blank" rel="noopener noreferrer" title="Открыть официальную страницу программы">${name}</a>`;
+    }
+    return name;
+  }
+
   /* ════════════════════════════════════════════════════════════════════
      ФИЛЬТРАЦИЯ И СОРТИРОВКА
      ════════════════════════════════════════════════════════════════════ */
@@ -1520,7 +1555,7 @@
       <div class="card ${program.unavailable ? "is-unavailable" : ""}" data-id="${program.id}">
         <div class="card-top">
           <div>
-            <p class="card-title">${program.name}</p>
+            <p class="card-title">${programNameHtml(program)}</p>
             <p class="card-vuz">${program.vuz}${program.faculty ? " · " + program.faculty : ""}</p>
             <p class="card-meta">${program.code} · ${program.campus}</p>
             <p class="card-meta">ЕГЭ: ${program.egeSubjects}</p>
@@ -1775,7 +1810,7 @@
       rows.push(["Статус: платное", p => statusTextForCompare(p, scores, "paid")]);
     }
 
-    let html = "<tr><th>Параметр</th>" + programs.map(p => `<th>${p.vuz}<br>${p.name}</th>`).join("") + "</tr>";
+    let html = "<tr><th>Параметр</th>" + programs.map(p => `<th>${escapeHtml(p.vuz)}<br>${programNameHtml(p)}</th>`).join("") + "</tr>";
     rows.forEach(([label, fn]) => {
       html += `<tr><td>${label}</td>` + programs.map(p => `<td>${fn(p)}</td>`).join("") + "</tr>";
     });
