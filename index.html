@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Куда поступать: СПб · ИИ, IT и бизнес · 2026</title>
+  <title>Куда поступать: Москва и СПб · ИИ, IT и бизнес · 2026</title>
   <!--
     ════════════════════════════════════════════════════════════════════
-    «Куда поступать: СПб · ИИ, IT и бизнес · 2026»
-    Интерактивный калькулятор шансов на поступление в бакалавриат СПб.
+    «Куда поступать: Москва и СПб · ИИ, IT и бизнес · 2026»
+    Интерактивный калькулятор шансов на поступление в бакалавриат Москвы и СПб.
     Один самодостаточный файл: vanilla JS, без сборки, без CDN, без бэкенда.
     Открывается двойным кликом по index.html.
     ════════════════════════════════════════════════════════════════════
@@ -366,6 +366,18 @@
     .card-row { display: flex; justify-content: space-between; gap: 8px; }
     .card-row .k { color: var(--text-dim); }
     .card-row .v { font-weight: 600; text-align: right; }
+    .card-row.note-row {
+      grid-column: 1 / -1;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
+    .card-row.note-row .v {
+      text-align: left;
+      font-weight: 500;
+      color: var(--text-dim);
+      font-size: 12.5px;
+    }
     .card-divider { border-top: 1px solid var(--border); margin: 2px 0; }
 
     .stars-row { display: flex; justify-content: space-between; font-size: 12.5px; }
@@ -426,6 +438,10 @@
       box-shadow: 0 8px 28px rgba(0,0,0,0.45);
       z-index: 50;
       font-size: 13.5px;
+    }
+    /* [hidden] должен реально скрывать панель — иначе она видна пустой при отсутствии выбора */
+    .compare-bar[hidden] {
+      display: none;
     }
     .compare-bar button {
       background: var(--accent);
@@ -575,10 +591,10 @@
 <body>
   <!-- ═══════════════ ШАПКА ═══════════════ -->
   <header class="page-header">
-    <h1>Куда поступать: СПб · <span>ИИ, IT и бизнес</span> · 2026</h1>
+    <h1>Куда поступать: Москва и СПб · <span>ИИ, IT и бизнес</span> · 2026</h1>
     <p>
       Калькулятор шансов на бюджет/платное, фильтры по интересам и сравнение программ
-      бакалавриата Санкт-Петербурга для абитуриентов с ЕГЭ математика + информатика + русский.
+      бакалавриата Москвы и Санкт-Петербурга для абитуриентов с ЕГЭ математика + информатика + русский.
     </p>
     <button class="feedback-header-btn" id="feedbackOpenBtn" type="button">🚩 Сообщить об ошибке / оставить отзыв</button>
   </header>
@@ -626,6 +642,10 @@
           <div class="chip-row" id="filterProfile"></div>
         </div>
         <div>
+          <p class="filter-group-title">Город</p>
+          <div class="chip-row" id="filterCity"></div>
+        </div>
+        <div>
           <p class="filter-group-title">Вуз</p>
           <div class="chip-row" id="filterVuz"></div>
         </div>
@@ -669,7 +689,7 @@
         <li>Квоты/БВИ и «реально конкурсных по ЕГЭ мест» — оценка по прошлым годам. Точные цифры вузы публикуют в июне 2026.</li>
         <li>Данные актуальны на приёмную кампанию 2025/26. Перед подачей документов проверяйте актуальные цифры на официальных сайтах вузов.</li>
         <li>Образовательный кредит под 3% годовых — программа Сбербанка для граждан РФ; условия могут измениться, уточняйте в банке.</li>
-        <li>Минимальные баллы ЕГЭ (СПбГУ: математика 80 / информатика 80 / русский 60–70) — это пороги допуска вуза, а не гарантия поступления.</li>
+        <li>Минимальные баллы ЕГЭ по предметам (например, у СПбГУ или ИТМО) — это пороги допуска вуза, а не гарантия поступления.</li>
       </ul>
     </section>
   </div>
@@ -738,14 +758,14 @@
        name            — название образовательной программы
        code            — код направления подготовки
        campus          — адрес/район кампуса
-       campusFar       — true, если кампус далеко (Петергоф)
+       campusFar       — true, если кампус заметно удалён от центра города (Петергоф, Долгопрудный, Зеленоград и т.п.)
        egeSubjects     — текстовое описание набора ЕГЭ
        egeFits         — подходит ли наш профиль (мат + информатика + рус)
        needsObsh       — требует обществознание без альтернативы (→ недоступно)
        minScores       — минимальные баллы по предметам (только там, где вуз их задаёт), иначе null
        budget          — всего бюджетных мест (null = нет данных)
        quota           — оценка мест по квотам/БВИ, которые вычитаются (null = нет данных)
-       realEge         — реально конкурсных по ЕГЭ мест (= budget − quota), либо принудительно 0
+       realEge         — реально конкурсных по ЕГЭ мест (= budget − quota, либо 0 при budgetOnlyBVI/budget=0, иначе null)
        budgetOnlyBVI   — бюджет доступен только олимпиадникам/БВИ (realEge = 0)
        paid            — платных мест (null = нет данных)
        noPaidSeats     — true, если платных мест нет вообще
@@ -756,6 +776,7 @@
        prokhPaid       — проходной на платное (null = нет данных)
        prokhPaidApprox — true, если проходной платного — оценка (≈)
        prokhPaidYear   — год, к которому относится платный проходной (если не 2025)
+       prokhPaidNote   — пояснение вместо проходного на платное (null = нет пояснения)
        stipend         — стипендия, ₽/мес (null = нет)
        creditAvailable — доступен ли образовательный кредит (3% годовых, РФ)
        creditPriceUnknown — кредит доступен, но цена неизвестна → калькулятор/расчёт заблокирован
@@ -771,453 +792,1031 @@
      ════════════════════════════════════════════════════════════════════ */
 
   const PROGRAMS = [
-    // ─────────────────────────────── ИТМО ───────────────────────────────
+    // ═══════════════════════════════ САНКТ-ПЕТЕРБУРГ ═══════════════════════════════
+    // ─────────────────────────────────── ИТМО ───────────────────────────────────
     {
-      id: 1, vuz: "ИТМО", faculty: "ФПИиКТ",
-      name: "Программирование и ИИ (ПМиИ)", code: "01.03.02",
-      campus: "Кронверкский пр., 49 · центр", campusFar: false,
-      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false, minScores: null,
-      budget: 144, quota: 72, realEge: 72, budgetOnlyBVI: false,
-      paid: 140, noPaidSeats: false, priceYear: 649000,
-      prokhBudget: 295, prokhBudgetApprox: true, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
+      id: 1, vuz: "ИТМО", faculty: "Факультет информационных технологий и программирования",
+      name: "Компьютерные технологии: Программирование и искусственный интеллект", code: "01.03.02",
+      city: "Санкт-Петербург", campus: "Кронверкский пр., 49 / Ломоносова, 9", campusFar: false,
+      url: "https://abit.itmo.ru/program/bachelor/programming",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: { math: 75, inf: 75, rus: 60 },
+      budget: 160, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: 90, noPaidSeats: false, priceYear: 399000,
+      prokhBudget: 301, prokhBudgetApprox: true, prokhBudgetNote: "объединённый набор ПМиИ (Компьютерные технологии + ML Native), 160 бюджетных мест, балл по агрегатору provuz/postupi",
+      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null, prokhPaidNote: "136 — минимум для подачи документов в ИТМО, а не проходной балл этой программы",
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "ИИ/DS", starAIDS: 5, starBusiness: 1, filters: ["ai", "ds"],
+      profileLabel: "ИИ / программирование", starAIDS: 5, starBusiness: 1, filters: ["ai", "it", "ds"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
-      id: 2, vuz: "ИТМО", faculty: "ФТИИ",
+      id: 2, vuz: "ИТМО", faculty: "ФИТиП",
+      name: "AI360: ML Native", code: "01.03.02",
+      city: "Санкт-Петербург", campus: "Кронверкский пр., 49", campusFar: false,
+      url: "https://abit.itmo.ru/programs/bachelor",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: 399000,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "ИТМО официально проходные не публикует",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "ИИ / ML", starAIDS: 5, starBusiness: 1, filters: ["ai", "ds"],
+      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 3, vuz: "ИТМО", faculty: "Факультет технологий искусственного интеллекта (ФТИИ)",
       name: "Инженерия искусственного интеллекта", code: "11.03.02",
-      campus: "Кронверкский пр., 49 · центр", campusFar: false,
-      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false, minScores: null,
-      budget: 32, quota: 10, realEge: 22, budgetOnlyBVI: false,
-      paid: 92, noPaidSeats: false, priceYear: 599000,
-      prokhBudget: 285, prokhBudgetApprox: true, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
-      stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "ИИ", starAIDS: 5, starBusiness: 1, filters: ["ai"],
+      city: "Санкт-Петербург", campus: "Кронверкский пр., 49", campusFar: false,
+      url: "https://abit.itmo.ru/programs/bachelor",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: null,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "ИТМО официально проходные не публикует",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "Инженерия ИИ", starAIDS: 5, starBusiness: 1, filters: ["ai"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
-      id: 3, vuz: "ИТМО", faculty: null,
-      name: "МОАИС «Инженерия ИИ»", code: "02.03.03",
-      campus: "Кронверкский пр., 49 · центр", campusFar: false,
-      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false, minScores: null,
-      budget: 55, quota: 15, realEge: 40, budgetOnlyBVI: false,
-      paid: 80, noPaidSeats: false, priceYear: 599000,
-      prokhBudget: 285, prokhBudgetApprox: true, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
-      stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "ИИ", starAIDS: 4, starBusiness: 1, filters: ["ai"],
+      id: 4, vuz: "ИТМО", faculty: "Факультет технологий искусственного интеллекта (ФТИИ)",
+      name: "МОАИС: Инженерия искусственного интеллекта", code: "02.03.03",
+      city: "Санкт-Петербург", campus: "Кронверкский пр., 49", campusFar: false,
+      url: "https://abit.itmo.ru/programs/bachelor",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: null,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "ИТМО официально проходные не публикует",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "Инженерия ИИ", starAIDS: 5, starBusiness: 1, filters: ["ai"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
-      id: 4, vuz: "ИТМО", faculty: null,
-      name: "Прикладная информатика «Прикладной ИИ»", code: "09.03.03",
-      campus: "Кронверкский пр., 49 · центр", campusFar: false,
-      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false, minScores: null,
-      budget: 30, quota: 8, realEge: 22, budgetOnlyBVI: false,
-      paid: 55, noPaidSeats: false, priceYear: 599000,
-      prokhBudget: 283, prokhBudgetApprox: true, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
+      id: 5, vuz: "ИТМО", faculty: "Факультет инфокоммуникационных технологий",
+      name: "Прикладная информатика (Прикладной ИИ / Мобильные и сетевые технологии)", code: "09.03.03",
+      city: "Санкт-Петербург", campus: "Кронверкский пр., 49", campusFar: false,
+      url: "https://abit.itmo.ru/programs/bachelor",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 30, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: 60, noPaidSeats: false, priceYear: 349000,
+      prokhBudget: 300, prokhBudgetApprox: true, prokhBudgetNote: "балл по агрегатору provuz",
+      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null, prokhPaidNote: "136 — минимум для подачи документов в ИТМО, а не проходной балл этой программы",
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "ИИ/DS", starAIDS: 4, starBusiness: 1, filters: ["ai", "ds"],
+      profileLabel: "Прикладной ИИ", starAIDS: 4, starBusiness: 1, filters: ["ai", "it"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
-      id: 5, vuz: "ИТМО", faculty: null,
-      name: "Программная инженерия", code: "09.03.02",
-      campus: "Кронверкский пр., 49 · центр", campusFar: false,
-      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false, minScores: null,
-      budget: 175, quota: 45, realEge: 130, budgetOnlyBVI: false,
-      paid: 480, noPaidSeats: false, priceYear: 599000,
-      prokhBudget: 284, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
+      id: 6, vuz: "ИТМО", faculty: "Факультет программной инженерии и компьютерной техники",
+      name: "Программная инженерия", code: "09.03.04",
+      city: "Санкт-Петербург", campus: "Кронверкский пр., 49", campusFar: false,
+      url: "https://abit.itmo.ru/programs/bachelor",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: 349000,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "ИТМО официально проходные не публикует",
+      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null, prokhPaidNote: "136 — минимум для подачи документов в ИТМО, а не проходной балл этой программы",
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "IT", starAIDS: 3, starBusiness: 1, filters: ["it"],
+      profileLabel: "Программирование", starAIDS: 3, starBusiness: 1, filters: ["it"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
-      id: 6, vuz: "ИТМО", faculty: null,
-      name: "Информационные системы и технологии", code: "11.03.02",
-      campus: "Кронверкский пр., 49 · центр", campusFar: false,
-      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false, minScores: null,
-      budget: 31, quota: 8, realEge: 23, budgetOnlyBVI: false,
-      paid: 91, noPaidSeats: false, priceYear: 599000,
-      prokhBudget: 280, prokhBudgetApprox: true, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
+      id: 7, vuz: "ИТМО", faculty: "Факультет информационных технологий и программирования",
+      name: "Информационные системы и технологии", code: "09.03.02",
+      city: "Санкт-Петербург", campus: "Кронверкский пр., 49", campusFar: false,
+      url: "https://abit.itmo.ru/programs/bachelor",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 135, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: 350, noPaidSeats: false, priceYear: 349000,
+      prokhBudget: 308, prokhBudgetApprox: true, prokhBudgetNote: "балл по агрегатору provuz",
+      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null, prokhPaidNote: "136 — минимум для подачи документов в ИТМО, а не проходной балл этой программы",
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "IT/DS", starAIDS: 3, starBusiness: 1, filters: ["ds", "it"],
-      egeCheckNeeded: false, unavailable: false, unavailableReason: null
-    },
-    {
-      id: 7, vuz: "ИТМО", faculty: "Инноватика",
-      name: "Технологии и инновации / Инноватика", code: "27.03.05",
-      campus: "Кронверкский пр., 49 · центр", campusFar: false,
-      egeSubjects: "математика + (физика/информатика) + русский", egeFits: true, needsObsh: false, minScores: null,
-      budget: 50, quota: 13, realEge: 37, budgetOnlyBVI: false,
-      paid: 78, noPaidSeats: false, priceYear: 549000,
-      prokhBudget: 244, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
-      stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "бизнес+IT", starAIDS: 2, starBusiness: 3, filters: ["business"],
+      profileLabel: "Программирование", starAIDS: 3, starBusiness: 1, filters: ["it"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
       id: 8, vuz: "ИТМО", faculty: "ФТМИ",
       name: "Бизнес-информатика", code: "38.03.05",
-      campus: "Кронверкский пр., 49 · центр", campusFar: false,
-      egeSubjects: "математика + ОБЩЕСТВОЗНАНИЕ + русский", egeFits: false, needsObsh: true, minScores: null,
-      budget: 55, quota: null, realEge: null, budgetOnlyBVI: false,
-      paid: 64, noPaidSeats: false, priceYear: 549000,
-      prokhBudget: 270, prokhBudgetApprox: true, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
-      stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "бизнес+IT", starAIDS: 2, starBusiness: 4, filters: ["business"],
-      egeCheckNeeded: false, unavailable: true,
-      unavailableReason: "требует обществознание без альтернативы — наш набор (информатика) не подходит"
+      city: "Санкт-Петербург", campus: "Биржевая линия, 14", campusFar: false,
+      url: "https://abit.itmo.ru/programs/bachelor",
+      egeSubjects: "математика + обществознание + русский", egeFits: false, needsObsh: true,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: null,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "Бизнес+IT", starAIDS: 1, starBusiness: 3, filters: ["business"],
+      egeCheckNeeded: false, unavailable: true, unavailableReason: "требуется обществознание без альтернативы"
     },
-
-    // ─────────────────────────────── СПбГУ ───────────────────────────────
+    // ─────────────────────────────────── СПбГУ ───────────────────────────────────
     {
       id: 9, vuz: "СПбГУ", faculty: "ФМКН",
       name: "Науки о данных", code: "02.03.01",
-      campus: "центр · Васильевский о.", campusFar: false,
+      city: "Санкт-Петербург", campus: "14-я линия В.О., 29", campusFar: false,
+      url: "https://math-cs.spbu.ru/admission-bsc/",
       egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
       minScores: { math: 80, inf: 80, rus: 70 },
-      budget: 30, quota: 27, realEge: 0, budgetOnlyBVI: true,
+      budget: 30, quota: 27, realEge: 3, budgetOnlyBVI: false,
       paid: 9, noPaidSeats: false, priceYear: 303800,
-      prokhBudget: null, prokhBudgetApprox: false, prokhBudgetNote: "бюджет — только олимпиадники/БВИ",
-      prokhPaid: 271, prokhPaidApprox: true, prokhPaidYear: 2024,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "бюджет почти весь БВИ (~27 квота)",
+      prokhPaid: 271, prokhPaidApprox: true, prokhPaidYear: 2024, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "DS", starAIDS: 5, starBusiness: 1, filters: ["ds"],
+      profileLabel: "Data Science", starAIDS: 5, starBusiness: 1, filters: ["ds", "ai"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
       id: 10, vuz: "СПбГУ", faculty: "ФМКН",
       name: "AI360: Математика машинного обучения", code: "02.03.01",
-      campus: "центр", campusFar: false,
+      city: "Санкт-Петербург", campus: "14-я линия В.О., 29", campusFar: false,
+      url: "https://math-cs.spbu.ru/bsc-ai360/",
       egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
       minScores: { math: 80, inf: 80, rus: 70 },
-      budget: 30, quota: 28, realEge: 0, budgetOnlyBVI: true,
+      budget: 30, quota: null, realEge: 0, budgetOnlyBVI: true,
       paid: 0, noPaidSeats: true, priceYear: null,
-      prokhBudget: null, prokhBudgetApprox: false, prokhBudgetNote: "поступление только по БВИ",
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "только БВИ",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
       stipend: 40000, creditAvailable: false, creditPriceUnknown: false,
-      profileLabel: "ИИ", starAIDS: 5, starBusiness: 1, filters: ["ai"],
+      profileLabel: "ИИ / ML", starAIDS: 5, starBusiness: 1, filters: ["ai", "ds"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
       id: 11, vuz: "СПбГУ", faculty: "ФМКН",
       name: "Современное программирование", code: "02.03.02",
-      campus: "Васильевский о. · центр", campusFar: false,
+      city: "Санкт-Петербург", campus: "14-я линия В.О., 29", campusFar: false,
+      url: "https://math-cs.spbu.ru/admission-bsc/",
       egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
       minScores: { math: 80, inf: 80, rus: 60 },
       budget: 40, quota: 36, realEge: 4, budgetOnlyBVI: false,
       paid: 9, noPaidSeats: false, priceYear: 303800,
-      prokhBudget: null, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: 272, prokhPaidApprox: true, prokhPaidYear: 2024,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "бюджет почти весь БВИ (~36 квота)",
+      prokhPaid: 272, prokhPaidApprox: true, prokhPaidYear: 2024, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "IT", starAIDS: 4, starBusiness: 1, filters: ["it"],
+      profileLabel: "Программирование", starAIDS: 4, starBusiness: 1, filters: ["it"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
       id: 12, vuz: "СПбГУ", faculty: "Матмех",
-      name: "ПИ: ИИ и наука о данных", code: "09.03.03",
-      campus: "Петергоф", campusFar: true,
-      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false, minScores: null,
+      name: "Прикладная информатика: ИИ и наука о данных", code: "09.03.03",
+      city: "Санкт-Петербург", campus: "Петергоф", campusFar: true,
+      url: "https://spbu.ru/postupayushchim/programms/bakalavriat",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
       paid: null, noPaidSeats: false, priceYear: 290000,
-      prokhBudget: 269, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhBudget: 269, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "ИИ/DS", starAIDS: 4, starBusiness: 1, filters: ["ai", "ds"],
+      profileLabel: "ИИ / Data Science", starAIDS: 4, starBusiness: 1, filters: ["ai", "ds"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
       id: 13, vuz: "СПбГУ", faculty: "Матмех",
-      name: "ПМ, программирование и ИИ", code: "01.03.02",
-      campus: "Петергоф", campusFar: true,
-      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false, minScores: null,
+      name: "Прикладные математика, программирование и ИИ", code: "01.03.02",
+      city: "Санкт-Петербург", campus: "Петергоф", campusFar: true,
+      url: "https://spbu.ru/postupayushchim/programms/bakalavriat/prikladnye-kompyuternye-tekhnologii-i-iskusstvennyy-intellekt",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
       paid: null, noPaidSeats: false, priceYear: 290000,
-      prokhBudget: 263, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhBudget: 263, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "ИИ", starAIDS: 3, starBusiness: 1, filters: ["ai"],
+      profileLabel: "ИИ / программирование", starAIDS: 4, starBusiness: 1, filters: ["ai", "it"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
-      id: 14, vuz: "СПбГУ", faculty: "Экономический ф-т",
+      id: 14, vuz: "СПбГУ", faculty: "Экономический факультет",
       name: "Бизнес-информатика", code: "38.03.05",
-      campus: "ул. Чайковского · центр", campusFar: false,
-      egeSubjects: "математика + (информатика/обществознание) + русский", egeFits: true, needsObsh: false, minScores: null,
+      city: "Санкт-Петербург", campus: "Чайковского, 62", campusFar: false,
+      url: "https://spbu.ru/postupayushchim/programms/bakalavriat/biznes-informatika",
+      egeSubjects: "математика + (информатика или обществознание) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: 15, quota: 4, realEge: 11, budgetOnlyBVI: false,
       paid: 85, noPaidSeats: false, priceYear: 381400,
-      prokhBudget: 277, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhBudget: 277, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "бизнес+IT", starAIDS: 2, starBusiness: 5, filters: ["business"],
+      profileLabel: "Бизнес+IT", starAIDS: 2, starBusiness: 4, filters: ["business", "ds"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    // ────────────────────────────────── ВШЭ СПб ──────────────────────────────────
+    {
+      id: 15, vuz: "ВШЭ СПб", faculty: "Школа физико-математических и компьютерных наук",
+      name: "Прикладной анализ данных и искусственный интеллект", code: "01.03.02",
+      city: "Санкт-Петербург", campus: "Кантемировская, 3", campusFar: false,
+      url: "https://spb.hse.ru/ba/dataanalytics/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 30, quota: 17, realEge: 13, budgetOnlyBVI: false,
+      paid: 15, noPaidSeats: false, priceYear: 550000,
+      prokhBudget: 289, prokhBudgetApprox: false, prokhBudgetNote: "официально '289 и выше' (2025); проходной платное 249",
+      prokhPaid: 249, prokhPaidApprox: false, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "ИИ / Data Science", starAIDS: 5, starBusiness: 1, filters: ["ai", "ds"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
-
-    // ─────────────────────────── Политех (СПбПУ) ───────────────────────────
     {
-      id: 15, vuz: "Политех", faculty: "ФизМех",
-      name: "ПМиИ: Матмоделирование и ИИ", code: "01.03.02",
-      campus: "Политехническая ул.", campusFar: false,
-      egeSubjects: "математика + (физика/информатика) + русский", egeFits: true, needsObsh: false, minScores: null,
+      id: 16, vuz: "ВШЭ СПб", faculty: "Школа физико-математических и компьютерных наук",
+      name: "Прикладная математика и информатика", code: "01.03.02",
+      city: "Санкт-Петербург", campus: "Кантемировская, 3", campusFar: false,
+      url: "https://spb.hse.ru/ba/appmath/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 30, quota: 6, realEge: 24, budgetOnlyBVI: false,
+      paid: 10, noPaidSeats: false, priceYear: 610000,
+      prokhBudget: 289, prokhBudgetApprox: false, prokhBudgetNote: "официально '289 и выше'",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "ПМиИ", starAIDS: 5, starBusiness: 1, filters: ["ai", "it", "ds"],
+      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 17, vuz: "ВШЭ СПб", faculty: "Школа физико-математических и компьютерных наук",
+      name: "Компьютерные технологии, системы и сети", code: "09.03.01",
+      city: "Санкт-Петербург", campus: "Кантемировская, 3", campusFar: false,
+      url: "https://spb.hse.ru/ba/ctsn/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 13, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: null,
+      prokhBudget: 278, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "Программирование", starAIDS: 3, starBusiness: 1, filters: ["it"],
+      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 18, vuz: "ВШЭ СПб", faculty: "Школа физико-математических и компьютерных наук",
+      name: "Программирование и инжиниринг компьютерных игр", code: "09.03.04",
+      city: "Санкт-Петербург", campus: "Кантемировская, 3", campusFar: false,
+      url: "https://spb.hse.ru/ba/gamedev/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 12, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: null,
+      prokhBudget: 284, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "Программирование", starAIDS: 3, starBusiness: 1, filters: ["it"],
+      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 19, vuz: "ВШЭ СПб", faculty: "Санкт-Петербургская школа экономики и менеджмента",
+      name: "Бизнес-информатика", code: "38.03.05",
+      city: "Санкт-Петербург", campus: "Кантемировская, 3", campusFar: false,
+      url: "https://spb.hse.ru/ba/bi/",
+      egeSubjects: "математика + (информатика принимается) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 25, quota: 5, realEge: 20, budgetOnlyBVI: false,
+      paid: 17, noPaidSeats: false, priceYear: 600000,
+      prokhBudget: 277, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "Бизнес+IT", starAIDS: 2, starBusiness: 4, filters: ["business"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    // ─────────────────────────────── СПбПУ Политех ───────────────────────────────
+    {
+      id: 20, vuz: "СПбПУ Политех", faculty: "ФизМех",
+      name: "Прикладная математика и информатика: Матмоделирование и ИИ", code: "01.03.02",
+      city: "Санкт-Петербург", campus: "Политехническая, 29", campusFar: false,
+      url: "https://www.spbstu.ru/abit/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: 80, quota: 20, realEge: 60, budgetOnlyBVI: false,
       paid: 25, noPaidSeats: false, priceYear: 250000,
-      prokhBudget: 271, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: 202, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhBudget: 271, prokhBudgetApprox: false, prokhBudgetNote: "официальный PDF итогов 2025",
+      prokhPaid: 202, prokhPaidApprox: false, prokhPaidYear: 2025, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "ИИ", starAIDS: 3, starBusiness: 1, filters: ["ai"],
+      profileLabel: "Матмоделирование / ИИ", starAIDS: 4, starBusiness: 1, filters: ["ai", "ds", "it"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
-      id: 16, vuz: "Политех", faculty: "ИКНК",
-      name: "МКН: Системы ИИ и суперкомпьютеры", code: "02.03.01",
-      campus: "Политехническая ул.", campusFar: false,
-      egeSubjects: "математика + (физика/информатика) + русский", egeFits: true, needsObsh: false, minScores: null,
+      id: 21, vuz: "СПбПУ Политех", faculty: "ИКНК",
+      name: "Математика и компьютерные науки: Системы ИИ и суперкомпьютеры", code: "02.03.01",
+      city: "Санкт-Петербург", campus: "Политехническая, 29", campusFar: false,
+      url: "https://www.spbstu.ru/abit/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: 46, quota: 12, realEge: 34, budgetOnlyBVI: false,
       paid: 27, noPaidSeats: false, priceYear: 265000,
-      prokhBudget: 273, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: 157, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhBudget: 273, prokhBudgetApprox: false, prokhBudgetNote: "официальный PDF 2025",
+      prokhPaid: 157, prokhPaidApprox: false, prokhPaidYear: 2025, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "ИИ", starAIDS: 3, starBusiness: 1, filters: ["ai"],
+      profileLabel: "Системы ИИ", starAIDS: 4, starBusiness: 1, filters: ["ai", "ds"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
-      id: 17, vuz: "Политех", faculty: "ИКНК",
+      id: 22, vuz: "СПбПУ Политех", faculty: "ИКНК",
       name: "МОАИС: Интеллектуальные ИС и обработка данных", code: "02.03.03",
-      campus: "Политехническая ул.", campusFar: false,
-      egeSubjects: "математика + (физика/информатика) + русский", egeFits: true, needsObsh: false, minScores: null,
+      city: "Санкт-Петербург", campus: "Политехническая, 29", campusFar: false,
+      url: "https://www.spbstu.ru/abit/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: 39, quota: 10, realEge: 29, budgetOnlyBVI: false,
       paid: null, noPaidSeats: false, priceYear: 265000,
-      prokhBudget: 264, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: 175, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhBudget: 264, prokhBudgetApprox: false, prokhBudgetNote: "официальный PDF 2025",
+      prokhPaid: 175, prokhPaidApprox: false, prokhPaidYear: 2025, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "DS", starAIDS: 3, starBusiness: 1, filters: ["ds"],
+      profileLabel: "Интеллектуальные ИС", starAIDS: 4, starBusiness: 1, filters: ["ai", "ds"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
-      id: 18, vuz: "Политех", faculty: "ИКНК",
-      name: "ИВТ (информатика и вычислительная техника)", code: "09.03.01",
-      campus: "Политехническая ул.", campusFar: false,
-      egeSubjects: "математика + (физика/информатика) + русский", egeFits: true, needsObsh: false, minScores: null,
+      id: 23, vuz: "СПбПУ Политех", faculty: "ИКНК",
+      name: "Информатика и вычислительная техника", code: "09.03.01",
+      city: "Санкт-Петербург", campus: "Политехническая, 29", campusFar: false,
+      url: "https://www.spbstu.ru/abit/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: 55, quota: 14, realEge: 41, budgetOnlyBVI: false,
       paid: null, noPaidSeats: false, priceYear: 265000,
-      prokhBudget: 264, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: 161, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhBudget: 264, prokhBudgetApprox: false, prokhBudgetNote: "официальный PDF 2025",
+      prokhPaid: 161, prokhPaidApprox: false, prokhPaidYear: 2025, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "IT", starAIDS: 2, starBusiness: 1, filters: ["it"],
+      profileLabel: "Программирование", starAIDS: 3, starBusiness: 1, filters: ["it"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
-      id: 19, vuz: "Политех", faculty: "ИКНК",
-      name: "ИСиТ (информационные системы и технологии)", code: "09.03.02",
-      campus: "Политехническая ул.", campusFar: false,
-      egeSubjects: "математика + (физика/информатика) + русский", egeFits: true, needsObsh: false, minScores: null,
+      id: 24, vuz: "СПбПУ Политех", faculty: "ИКНК",
+      name: "Информационные системы и технологии", code: "09.03.02",
+      city: "Санкт-Петербург", campus: "Политехническая, 29", campusFar: false,
+      url: "https://www.spbstu.ru/abit/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: 48, quota: 12, realEge: 36, budgetOnlyBVI: false,
       paid: null, noPaidSeats: false, priceYear: 265000,
-      prokhBudget: 267, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: 154, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhBudget: 267, prokhBudgetApprox: false, prokhBudgetNote: "официальный PDF 2025",
+      prokhPaid: 154, prokhPaidApprox: false, prokhPaidYear: 2025, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "IT", starAIDS: 2, starBusiness: 1, filters: ["it"],
+      profileLabel: "Программирование", starAIDS: 3, starBusiness: 1, filters: ["it"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
-      id: 20, vuz: "Политех", faculty: "ИКНК",
+      id: 25, vuz: "СПбПУ Политех", faculty: "ИКНК",
       name: "Прикладная информатика", code: "09.03.03",
-      campus: "Политехническая ул.", campusFar: false,
-      egeSubjects: "математика + (физика/информатика) + русский", egeFits: true, needsObsh: false, minScores: null,
+      city: "Санкт-Петербург", campus: "Политехническая, 29", campusFar: false,
+      url: "https://www.spbstu.ru/abit/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: 44, quota: 11, realEge: 33, budgetOnlyBVI: false,
       paid: null, noPaidSeats: false, priceYear: 265000,
-      prokhBudget: 279, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: 198, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhBudget: 279, prokhBudgetApprox: false, prokhBudgetNote: "официальный PDF 2025",
+      prokhPaid: 198, prokhPaidApprox: false, prokhPaidYear: 2025, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "IT", starAIDS: 3, starBusiness: 1, filters: ["it"],
+      profileLabel: "Прикладная информатика", starAIDS: 3, starBusiness: 2, filters: ["it", "ds"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
-      id: 21, vuz: "Политех", faculty: "ИКНК",
+      id: 26, vuz: "СПбПУ Политех", faculty: "ИКНК",
       name: "Программная инженерия", code: "09.03.04",
-      campus: "Политехническая ул.", campusFar: false,
-      egeSubjects: "математика + (физика/информатика) + русский", egeFits: true, needsObsh: false, minScores: null,
+      city: "Санкт-Петербург", campus: "Политехническая, 29", campusFar: false,
+      url: "https://www.spbstu.ru/abit/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: 108, quota: 27, realEge: 81, budgetOnlyBVI: false,
       paid: null, noPaidSeats: false, priceYear: 265000,
-      prokhBudget: 284, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: 189, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhBudget: 284, prokhBudgetApprox: false, prokhBudgetNote: "официальный PDF 2025",
+      prokhPaid: 189, prokhPaidApprox: false, prokhPaidYear: 2025, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "IT", starAIDS: 3, starBusiness: 1, filters: ["it"],
+      profileLabel: "Программирование", starAIDS: 3, starBusiness: 1, filters: ["it"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
-      id: 22, vuz: "Политех", faculty: "ИПМЭиТ",
+      id: 27, vuz: "СПбПУ Политех", faculty: "ИПМЭиТ",
       name: "Бизнес-информатика", code: "38.03.05",
-      campus: "Политехническая ул.", campusFar: false,
-      egeSubjects: "математика + (информатика/обществознание) + русский", egeFits: true, needsObsh: false, minScores: null,
+      city: "Санкт-Петербург", campus: "Политехническая, 29", campusFar: false,
+      url: "https://www.spbstu.ru/abit/",
+      egeSubjects: "математика + (информатика/общ) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: 50, quota: 13, realEge: 37, budgetOnlyBVI: false,
       paid: 30, noPaidSeats: false, priceYear: 302000,
-      prokhBudget: 270, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: 202, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhBudget: 270, prokhBudgetApprox: false, prokhBudgetNote: "официальный PDF 2025",
+      prokhPaid: 202, prokhPaidApprox: false, prokhPaidYear: 2025, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "бизнес+IT", starAIDS: 2, starBusiness: 4, filters: ["business"],
+      profileLabel: "Бизнес+IT", starAIDS: 2, starBusiness: 4, filters: ["business"],
       egeCheckNeeded: true, unavailable: false, unavailableReason: null
     },
     {
-      id: 23, vuz: "Политех", faculty: "ИМММиТ",
+      id: 28, vuz: "СПбПУ Политех", faculty: "ИМММиТ",
       name: "Инноватика", code: "27.03.05",
-      campus: "Политехническая ул.", campusFar: false,
-      egeSubjects: "математика + (физика/информатика) + русский", egeFits: true, needsObsh: false, minScores: null,
+      city: "Санкт-Петербург", campus: "Политехническая, 29", campusFar: false,
+      url: "https://www.spbstu.ru/abit/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: 50, quota: 13, realEge: 37, budgetOnlyBVI: false,
       paid: 78, noPaidSeats: false, priceYear: 250000,
-      prokhBudget: 244, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: 149, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhBudget: 244, prokhBudgetApprox: false, prokhBudgetNote: "официальный PDF 2025",
+      prokhPaid: 149, prokhPaidApprox: false, prokhPaidYear: 2025, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "бизнес+IT", starAIDS: 2, starBusiness: 3, filters: ["business"],
+      profileLabel: "Инноватика", starAIDS: 1, starBusiness: 3, filters: ["business", "it"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
-
-    // ─────────────────────────────── ЛЭТИ ───────────────────────────────
     {
-      id: 24, vuz: "ЛЭТИ", faculty: null,
+      id: 29, vuz: "СПбПУ Политех", faculty: "ИПМЭиТ",
+      name: "Экономика цифрового предприятия", code: "38.03.01",
+      city: "Санкт-Петербург", campus: "Политехническая, 29", campusFar: false,
+      url: "https://www.spbstu.ru/abit/",
+      egeSubjects: "математика + (информатика/общ) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: 302000,
+      prokhBudget: 260, prokhBudgetApprox: false, prokhBudgetNote: "официальный PDF 2025",
+      prokhPaid: 195, prokhPaidApprox: false, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "Бизнес+IT", starAIDS: 1, starBusiness: 3, filters: ["business"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    // ─────────────────────────────── ЛЭТИ СПбГЭТУ ───────────────────────────────
+    {
+      id: 30, vuz: "ЛЭТИ СПбГЭТУ", faculty: "Факультет компьютерных технологий и информатики",
       name: "Системы искусственного интеллекта", code: "01.03.02",
-      campus: "Петроградская", campusFar: false,
-      egeSubjects: "математика + (физика/информатика) + русский", egeFits: true, needsObsh: false, minScores: null,
+      city: "Санкт-Петербург", campus: "ул. Профессора Попова, 5", campusFar: false,
+      url: "https://abit.etu.ru/ru/postupayushhim/bakalavriat-i-specialitet/napravleniya-podgotovki",
+      egeSubjects: "математика + (информатика/физика) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
-      paid: null, noPaidSeats: false, priceYear: 142000,
+      paid: null, noPaidSeats: false, priceYear: 284000,
       prokhBudget: 245, prokhBudgetApprox: true, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "ИИ", starAIDS: 3, starBusiness: 1, filters: ["ai"],
-      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+      profileLabel: "Системы ИИ", starAIDS: 4, starBusiness: 1, filters: ["ai"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
     },
     {
-      id: 25, vuz: "ЛЭТИ", faculty: null,
-      name: "ИВТ: Искусственный интеллект", code: "09.03.01",
-      campus: "Петроградская", campusFar: false,
-      egeSubjects: "математика + (физика/информатика) + русский", egeFits: true, needsObsh: false, minScores: null,
-      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
-      paid: null, noPaidSeats: false, priceYear: 142000,
+      id: 31, vuz: "ЛЭТИ СПбГЭТУ", faculty: "Факультет компьютерных технологий и информатики",
+      name: "Информатика и вычислительная техника: Искусственный интеллект", code: "09.03.01",
+      city: "Санкт-Петербург", campus: "ул. Профессора Попова, 5", campusFar: false,
+      url: "https://abit.etu.ru/ru/postupayushhim/bakalavriat-i-specialitet/napravleniya-podgotovki/informatika-i-vychislitelnaya-tehnika-iskusstvennyj-intellekt",
+      egeSubjects: "математика + (информатика/физика) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 80, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: 284000,
       prokhBudget: 245, prokhBudgetApprox: true, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "ИИ", starAIDS: 3, starBusiness: 1, filters: ["ai"],
-      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+      profileLabel: "ИИ / программирование", starAIDS: 4, starBusiness: 1, filters: ["ai", "it"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
     },
-
-    // ─────────────────────────────── ГУАП ───────────────────────────────
+    // ─────────────────────────────────── ГУАП ───────────────────────────────────
     {
-      id: 26, vuz: "ГУАП", faculty: null,
+      id: 32, vuz: "ГУАП", faculty: "Институт информационных технологий и программирования (№4)",
       name: "Прикладная информатика", code: "09.03.03",
-      campus: "Большая Морская · центр", campusFar: false,
-      egeSubjects: "математика + (физика/информатика) + русский", egeFits: true, needsObsh: false, minScores: null,
+      city: "Санкт-Петербург", campus: "Большая Морская, 67", campusFar: false,
+      url: "https://priem.guap.ru/bach/calc",
+      egeSubjects: "математика + (информатика/физика) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: 90, quota: 22, realEge: 68, budgetOnlyBVI: false,
-      paid: 30, noPaidSeats: false, priceYear: null,
-      prokhBudget: 243, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
-      stipend: null, creditAvailable: true, creditPriceUnknown: true,
-      profileLabel: "IT/DS", starAIDS: 2, starBusiness: 1, filters: ["ds", "it"],
-      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+      paid: 30, noPaidSeats: false, priceYear: 242000,
+      prokhBudget: 243, prokhBudgetApprox: false, prokhBudgetNote: "postupi.info 2025",
+      prokhPaid: 140, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "Прикладная информатика", starAIDS: 3, starBusiness: 2, filters: ["it", "ds"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
     },
     {
-      id: 27, vuz: "ГУАП", faculty: null,
-      name: "ИСиТ (информационные системы и технологии)", code: "09.03.02",
-      campus: "Большая Морская · центр", campusFar: false,
-      egeSubjects: "математика + (физика/информатика) + русский", egeFits: true, needsObsh: false, minScores: null,
+      id: 33, vuz: "ГУАП", faculty: "Институт информационных технологий и программирования (№4)",
+      name: "Информационные системы и технологии", code: "09.03.02",
+      city: "Санкт-Петербург", campus: "Большая Морская, 67", campusFar: false,
+      url: "https://priem.guap.ru/bach/calc",
+      egeSubjects: "математика + (информатика/физика) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: 85, quota: 21, realEge: 64, budgetOnlyBVI: false,
-      paid: null, noPaidSeats: false, priceYear: null,
-      prokhBudget: 247, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
-      stipend: null, creditAvailable: true, creditPriceUnknown: true,
-      profileLabel: "IT", starAIDS: 2, starBusiness: 1, filters: ["it"],
-      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+      paid: 20, noPaidSeats: false, priceYear: 242000,
+      prokhBudget: 247, prokhBudgetApprox: false, prokhBudgetNote: "postupi.info 2025",
+      prokhPaid: 193, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "Программирование", starAIDS: 3, starBusiness: 1, filters: ["it"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
     },
-
-    // ─────────────────────── СПбГУТ им. Бонч-Бруевича ───────────────────────
     {
-      id: 28, vuz: "СПбГУТ", faculty: null,
-      name: "Анализ данных и прикладной ИИ", code: "09.03.01",
-      campus: "СПбГУТ им. Бонч-Бруевича", campusFar: false,
-      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false, minScores: null,
+      id: 34, vuz: "ГУАП", faculty: "Институт аэрокосмических приборов и систем",
+      name: "Информатика и вычислительная техника", code: "09.03.01",
+      city: "Санкт-Петербург", campus: "Большая Морская, 67", campusFar: false,
+      url: "https://priem.guap.ru/bach/calc",
+      egeSubjects: "математика + (информатика/физика) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 80, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: 10, noPaidSeats: false, priceYear: 242000,
+      prokhBudget: 244, prokhBudgetApprox: false, prokhBudgetNote: "postupi.info 2025",
+      prokhPaid: 173, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "Программирование", starAIDS: 3, starBusiness: 1, filters: ["it"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    // ─────────────────────────── СПбГУТ Бонч-Бруевича ───────────────────────────
+    {
+      id: 35, vuz: "СПбГУТ Бонч-Бруевича", faculty: "Факультет информационных технологий и программной инженерии",
+      name: "Анализ данных и прикладной искусственный интеллект", code: "09.03.01",
+      city: "Санкт-Петербург", campus: "пр. Большевиков, 22", campusFar: false,
+      url: "https://priem.sut.ru/napravleniya-podgotovki/AI-v-setyah-6G",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
       paid: null, noPaidSeats: false, priceYear: 240000,
       prokhBudget: 235, prokhBudgetApprox: true, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "ИИ/DS", starAIDS: 3, starBusiness: 1, filters: ["ai", "ds"],
+      profileLabel: "ИИ / анализ данных", starAIDS: 4, starBusiness: 1, filters: ["ai", "ds"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
-      id: 29, vuz: "СПбГУТ", faculty: null,
-      name: "Бизнес-информатика", code: "38.03.05",
-      campus: "СПбГУТ им. Бонч-Бруевича", campusFar: false,
-      egeSubjects: "математика + (информатика/обществознание) + русский", egeFits: true, needsObsh: false, minScores: null,
+      id: 36, vuz: "СПбГУТ Бонч-Бруевича", faculty: "Факультет информационных технологий и программной инженерии",
+      name: "Разработка ПО и приложений ИИ в киберфизических системах", code: "09.03.04",
+      city: "Санкт-Петербург", campus: "пр. Большевиков, 22", campusFar: false,
+      url: "https://priem.sut.ru/napravleniya-podgotovki",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
       budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
       paid: null, noPaidSeats: false, priceYear: 240000,
-      prokhBudget: 230, prokhBudgetApprox: true, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "бизнес+IT", starAIDS: 2, starBusiness: 3, filters: ["business"],
-      egeCheckNeeded: false, unavailable: false, unavailableReason: null
-    },
-
-    // ────────────────────────── СПбГЭУ (ФИНЭК) ──────────────────────────
-    {
-      id: 30, vuz: "СПбГЭУ", faculty: "ФИПМ",
-      name: "ПМиИ в экономике и управлении", code: "01.03.02",
-      campus: "канал Грибоедова · центр", campusFar: false,
-      egeSubjects: "математика + (физика/информатика) + русский", egeFits: true, needsObsh: false, minScores: null,
-      budget: 86, quota: 21, realEge: 65, budgetOnlyBVI: false,
-      paid: 35, noPaidSeats: false, priceYear: 304000,
-      prokhBudget: 241, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: 151, prokhPaidApprox: true, prokhPaidYear: null,
-      stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "DS+экономика", starAIDS: 3, starBusiness: 4, filters: ["ds", "business"],
+      profileLabel: "Разработка ПО / ИИ", starAIDS: 3, starBusiness: 1, filters: ["ai", "it"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
-      id: 31, vuz: "СПбГЭУ", faculty: null,
-      name: "Бизнес-информатика: Деловая аналитика", code: "38.03.05",
-      campus: "канал Грибоедова · центр", campusFar: false,
-      egeSubjects: "математика + (информатика/обществознание) + русский", egeFits: true, needsObsh: false, minScores: null,
-      budget: 5, quota: null, realEge: null, budgetOnlyBVI: false,
-      paid: 114, noPaidSeats: false, priceYear: 304000,
-      prokhBudget: 284, prokhBudgetApprox: false, prokhBudgetNote: null,
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
-      stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "бизнес+IT", starAIDS: 2, starBusiness: 3, filters: ["business"],
+      id: 37, vuz: "СПбГУТ Бонч-Бруевича", faculty: "Факультет социальных технологий и экономики данных",
+      name: "Бизнес-информатика", code: "38.03.05",
+      city: "Санкт-Петербург", campus: "пр. Большевиков, 22", campusFar: false,
+      url: "https://priem.sut.ru/napravleniya-podgotovki",
+      egeSubjects: "математика + (информатика/общ) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: null,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "Бизнес+IT", starAIDS: 1, starBusiness: 3, filters: ["business"],
       egeCheckNeeded: true, unavailable: false, unavailableReason: null
     },
-
-    // ────────────────────────── РАНХиГС СПб (СЗИУ) ──────────────────────────
+    // ─────────────────────────────── СПбГЭУ ФИНЭК ───────────────────────────────
     {
-      id: 32, vuz: "РАНХиГС", faculty: "СЗИУ",
-      name: "Прикладная информатика: Цифровые технологии", code: "09.03.03",
-      campus: "СЗИУ РАНХиГС", campusFar: false,
-      egeSubjects: "математика + (физика/информатика) + русский", egeFits: true, needsObsh: false, minScores: null,
-      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
-      paid: null, noPaidSeats: false, priceYear: 175000,
-      prokhBudget: null, prokhBudgetApprox: false, prokhBudgetNote: "только платный приём",
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
+      id: 38, vuz: "СПбГЭУ ФИНЭК", faculty: "ФИПМ",
+      name: "Прикладная математика и информатика в экономике и управлении", code: "01.03.02",
+      city: "Санкт-Петербург", campus: "наб. канала Грибоедова, 30-32", campusFar: false,
+      url: "https://abit.unecon.ru/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 86, quota: 21, realEge: 65, budgetOnlyBVI: false,
+      paid: 35, noPaidSeats: false, priceYear: 304000,
+      prokhBudget: 241, prokhBudgetApprox: false, prokhBudgetNote: "официальный PDF итогов 2025",
+      prokhPaid: 151, prokhPaidApprox: false, prokhPaidYear: 2025, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "IT", starAIDS: 2, starBusiness: 1, filters: ["it"],
+      profileLabel: "ПМиИ в экономике", starAIDS: 3, starBusiness: 2, filters: ["ai", "ds"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
     },
     {
-      id: 33, vuz: "РАНХиГС", faculty: "СЗИУ",
-      name: "Бизнес-информатика", code: "38.03.05",
-      campus: "СЗИУ РАНХиГС", campusFar: false,
-      egeSubjects: "математика + (информатика/обществознание/история) + русский", egeFits: true, needsObsh: false, minScores: null,
-      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
-      paid: null, noPaidSeats: false, priceYear: 175000,
-      prokhBudget: null, prokhBudgetApprox: false, prokhBudgetNote: "только платный приём",
-      prokhPaid: null, prokhPaidApprox: false, prokhPaidYear: null,
+      id: 39, vuz: "СПбГЭУ ФИНЭК", faculty: "ФИПМ",
+      name: "Бизнес-информатика: Деловая аналитика", code: "38.03.05",
+      city: "Санкт-Петербург", campus: "наб. канала Грибоедова, 30-32", campusFar: false,
+      url: "https://abit.unecon.ru/",
+      egeSubjects: "математика + (информатика/общ) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 5, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: 114, noPaidSeats: false, priceYear: 304000,
+      prokhBudget: 284, prokhBudgetApprox: false, prokhBudgetNote: "официальный PDF итогов 2025",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
       stipend: null, creditAvailable: true, creditPriceUnknown: false,
-      profileLabel: "бизнес+IT", starAIDS: 2, starBusiness: 3, filters: ["business"],
+      profileLabel: "Бизнес+IT", starAIDS: 2, starBusiness: 4, filters: ["business", "ds"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 40, vuz: "СПбГЭУ ФИНЭК", faculty: "ФИПМ",
+      name: "Прикладная информатика: Управление бизнес-процессами", code: "09.03.03",
+      city: "Санкт-Петербург", campus: "наб. канала Грибоедова, 30-32", campusFar: false,
+      url: "https://abit.unecon.ru/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 0, quota: null, realEge: 0, budgetOnlyBVI: false,
+      paid: 68, noPaidSeats: false, priceYear: 304000,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "бюджета не было в 2025, только платно",
+      prokhPaid: 253, prokhPaidApprox: false, prokhPaidYear: 2024, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "Прикладная информатика", starAIDS: 2, starBusiness: 3, filters: ["it", "business"],
       egeCheckNeeded: false, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 41, vuz: "СПбГЭУ ФИНЭК", faculty: "ФИПМ",
+      name: "Информационные системы и технологии: Цифровизация экономической деятельности", code: "09.03.02",
+      city: "Санкт-Петербург", campus: "наб. канала Грибоедова, 30-32", campusFar: false,
+      url: "https://abit.unecon.ru/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 0, quota: null, realEge: 0, budgetOnlyBVI: false,
+      paid: 45, noPaidSeats: false, priceYear: 304000,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "бюджета не было в 2025, только платно",
+      prokhPaid: 249, prokhPaidApprox: false, prokhPaidYear: 2024, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "ИСиТ", starAIDS: 2, starBusiness: 3, filters: ["it", "business"],
+      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+    },
+    // ───────────────────────────── РАНХиГС СПб СЗИУ ─────────────────────────────
+    {
+      id: 42, vuz: "РАНХиГС СПб СЗИУ", faculty: "Факультет экономики и финансов",
+      name: "Прикладная информатика: Цифровые технологии", code: "09.03.03",
+      city: "Санкт-Петербург", campus: "Средний пр. В.О., 57/43", campusFar: false,
+      url: "https://sziu.ranepa.ru/",
+      egeSubjects: "математика + (информатика/физика) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 0, quota: null, realEge: 0, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: 175000,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "только платно",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "Прикладная информатика", starAIDS: 2, starBusiness: 2, filters: ["it"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 43, vuz: "РАНХиГС СПб СЗИУ", faculty: "Факультет экономики и финансов",
+      name: "Бизнес-информатика", code: "38.03.05",
+      city: "Санкт-Петербург", campus: "Средний пр. В.О., 57/43", campusFar: false,
+      url: "https://sziu.ranepa.ru/",
+      egeSubjects: "математика + (информатика/общ/ист) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 0, quota: null, realEge: 0, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: 175000,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "только платно",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "Бизнес+IT", starAIDS: 1, starBusiness: 3, filters: ["business"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    // ═══════════════════════════════ МОСКВА ═══════════════════════════════
+    // ─────────────────────────────────── МФТИ ───────────────────────────────────
+    {
+      id: 44, vuz: "МФТИ", faculty: "Физтех-школа прикладной математики и информатики (ФПМИ)",
+      name: "Прикладная математика и информатика", code: "01.03.02",
+      city: "Москва", campus: "Долгопрудный, Институтский пер., 9", campusFar: true,
+      url: "https://mipt.ru/education/programs/prikladnaya-matematika-i-informatika",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 125, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: 43, noPaidSeats: false, priceYear: null,
+      prokhBudget: 299, prokhBudgetApprox: false, prokhBudgetNote: "postupi.info 2025: 'от 299 бюджет'",
+      prokhPaid: 225, prokhPaidApprox: false, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "ПМиИ", starAIDS: 5, starBusiness: 1, filters: ["ai", "ds", "it"],
+      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 45, vuz: "МФТИ", faculty: "ФПМИ",
+      name: "Математика и компьютерные науки", code: "02.03.01",
+      city: "Москва", campus: "Долгопрудный, Институтский пер., 9", campusFar: true,
+      url: "https://mipt.ru/education",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: null,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "высокий проходной, значительная доля БВИ",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "Матем / CS", starAIDS: 5, starBusiness: 1, filters: ["ai", "ds"],
+      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+    },
+    // ──────────────────────────────── ВШЭ Москва ────────────────────────────────
+    {
+      id: 46, vuz: "ВШЭ Москва", faculty: "Факультет компьютерных наук (ФКН)",
+      name: "Прикладная математика и информатика", code: "01.03.02",
+      city: "Москва", campus: "Покровский бульвар, 11", campusFar: false,
+      url: "https://cs.hse.ru/abitur/ba",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: 0, budgetOnlyBVI: true,
+      paid: null, noPaidSeats: false, priceYear: null,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "в 2023-2025 все бюджетные места заняты в приоритетном порядке (квоты + олимпиадники БВИ)",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "ПМиИ", starAIDS: 5, starBusiness: 1, filters: ["ai", "ds", "it"],
+      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 47, vuz: "ВШЭ Москва", faculty: "Факультет компьютерных наук (ФКН)",
+      name: "Программная инженерия", code: "09.03.04",
+      city: "Москва", campus: "Покровский бульвар, 11", campusFar: false,
+      url: "https://www.hse.ru/ba/se/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: null,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "много БВИ; 2023 — 305 баллов/299 ЗВ",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "Программирование", starAIDS: 3, starBusiness: 1, filters: ["it"],
+      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 48, vuz: "ВШЭ Москва", faculty: "МИЭМ им. А.Н. Тихонова",
+      name: "Информатика и вычислительная техника", code: "09.03.01",
+      city: "Москва", campus: "ул. Таллинская, 34", campusFar: false,
+      url: "https://miem.hse.ru/",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: null,
+      prokhBudget: 281, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "ИВТ", starAIDS: 3, starBusiness: 1, filters: ["it", "ai"],
+      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+    },
+    // ─────────────────────────────────── МИСИС ───────────────────────────────────
+    {
+      id: 49, vuz: "МИСИС", faculty: "Институт компьютерных наук",
+      name: "Бизнес-информатика", code: "38.03.05",
+      city: "Москва", campus: "Ленинский пр., 4", campusFar: false,
+      url: "https://misis.ru/applicants/admission/baccalaureate-and-specialty/faculties/bi/",
+      egeSubjects: "математика + (информатика/общ) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 20, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: 439000,
+      prokhBudget: 287, prokhBudgetApprox: true, prokhBudgetNote: "оценка; родственное ИВТ официально 284 (2025)",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "Бизнес+IT / DS", starAIDS: 3, starBusiness: 4, filters: ["business", "ds", "ai"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 50, vuz: "МИСИС", faculty: "Институт компьютерных наук",
+      name: "Прикладная информатика", code: "09.03.03",
+      city: "Москва", campus: "Ленинский пр., 4", campusFar: false,
+      url: "https://misis.ru/applicants/admission/baccalaureate-and-specialty/faculties/prikladnayainformatika/",
+      egeSubjects: "математика + (информатика/физика) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: 340000,
+      prokhBudget: 284, prokhBudgetApprox: false, prokhBudgetNote: "misis.ru: 'Проходной балл в 2025 г. — 284' (для ИВТ-блока)",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "Прикладная информатика", starAIDS: 3, starBusiness: 2, filters: ["it", "ds"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 51, vuz: "МИСИС", faculty: "Институт компьютерных наук",
+      name: "Информатика и вычислительная техника", code: "09.03.01",
+      city: "Москва", campus: "Ленинский пр., 4", campusFar: false,
+      url: "https://misis.ru/applicants/admission/baccalaureate-and-specialty/",
+      egeSubjects: "математика + (информатика/физика) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: 340000,
+      prokhBudget: 284, prokhBudgetApprox: false, prokhBudgetNote: "misis.ru: 'Проходной балл в 2025 г. — 284'",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "ИВТ", starAIDS: 4, starBusiness: 1, filters: ["it", "ai"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    // ───────────────────────────────── МИРЭА РТУ ─────────────────────────────────
+    {
+      id: 52, vuz: "МИРЭА РТУ", faculty: "Институт информационных технологий",
+      name: "Прикладная информатика: Управление данными", code: "09.03.03",
+      city: "Москва", campus: "пр. Вернадского, 78", campusFar: false,
+      url: "https://priem.mirea.ru/guide",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 40, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: 80, noPaidSeats: false, priceYear: 321000,
+      prokhBudget: 267, prokhBudgetApprox: false, prokhBudgetNote: "provuz/priem.mirea 2025",
+      prokhPaid: 192, prokhPaidApprox: false, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "Прикладная информатика", starAIDS: 3, starBusiness: 2, filters: ["it", "ds"],
+      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 53, vuz: "МИРЭА РТУ", faculty: "Институт информационных технологий",
+      name: "Прикладная информатика: Цифровая трансформация", code: "09.03.03",
+      city: "Москва", campus: "пр. Вернадского, 78", campusFar: false,
+      url: "https://priem.mirea.ru/guide",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 40, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: 80, noPaidSeats: false, priceYear: 359300,
+      prokhBudget: 259, prokhBudgetApprox: false, prokhBudgetNote: "provuz 2025",
+      prokhPaid: 192, prokhPaidApprox: false, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "Прикладная информатика", starAIDS: 3, starBusiness: 2, filters: ["it", "business"],
+      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 54, vuz: "МИРЭА РТУ", faculty: "Институт искусственного интеллекта",
+      name: "ИСиТ: Технологии ИИ и анализ данных", code: "09.03.02",
+      city: "Москва", campus: "пр. Вернадского, 78", campusFar: false,
+      url: "https://priem.mirea.ru/guide",
+      egeSubjects: "математика + информатика + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: 321000,
+      prokhBudget: 246, prokhBudgetApprox: true, prokhBudgetNote: "kp.ru: ИСиТ 246 (2025)",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "ИИ / анализ данных", starAIDS: 4, starBusiness: 1, filters: ["ai", "ds", "it"],
+      egeCheckNeeded: false, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 55, vuz: "МИРЭА РТУ", faculty: "Институт технологий управления",
+      name: "Бизнес-информатика", code: "38.03.05",
+      city: "Москва", campus: "пр. Вернадского, 78", campusFar: false,
+      url: "https://priem.mirea.ru/guide",
+      egeSubjects: "математика + (информатика/общ) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: null,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "Бизнес+IT", starAIDS: 1, starBusiness: 3, filters: ["business"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    // ───────────────────────────── РЭУ им. Плеханова ─────────────────────────────
+    {
+      id: 56, vuz: "РЭУ им. Плеханова", faculty: "Спецфакультет 'Форсайт' / Высшая школа кибертехнологий",
+      name: "Прикладная математика и информатика", code: "01.03.02",
+      city: "Москва", campus: "Стремянный пер., 36", campusFar: false,
+      url: "https://www.rea.ru/structure/hs/vyisshaya-shkola-kibertehnologiy-matematiki-i-statistiki/educationalprograms/bak-prikladnaya-matematika-i-informatika",
+      egeSubjects: "математика + (информатика/физика) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 5, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: 20, noPaidSeats: false, priceYear: 360000,
+      prokhBudget: 283, prokhBudgetApprox: true, prokhBudgetNote: "umschool: 283 (2024); provuz: мин. 282",
+      prokhPaid: 150, prokhPaidApprox: true, prokhPaidYear: 2024, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "ПМиИ", starAIDS: 3, starBusiness: 2, filters: ["ai", "ds"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 57, vuz: "РЭУ им. Плеханова", faculty: "Институт цифровой экономики и ИТ",
+      name: "Бизнес-информатика", code: "38.03.05",
+      city: "Москва", campus: "Стремянный пер., 36", campusFar: false,
+      url: "https://www.rea.ru/",
+      egeSubjects: "математика + (информатика/общ) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: null,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "проверить обязательность общества",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "Бизнес+IT", starAIDS: 1, starBusiness: 3, filters: ["business"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    // ────────────────────────── Финансовый университет ──────────────────────────
+    {
+      id: 58, vuz: "Финансовый университет", faculty: "Факультет информационных технологий и анализа больших данных",
+      name: "Прикладная информатика", code: "09.03.03",
+      city: "Москва", campus: "Ленинградский пр., 49", campusFar: false,
+      url: "https://bakalavriat.fa.ru/",
+      egeSubjects: "математика + (информатика/физика) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: 300000,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "Прикладная информатика", starAIDS: 3, starBusiness: 2, filters: ["it", "ds"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 59, vuz: "Финансовый университет", faculty: "Факультет информационных технологий и анализа больших данных",
+      name: "Бизнес-информатика", code: "38.03.05",
+      city: "Москва", campus: "Ленинградский пр., 49", campusFar: false,
+      url: "https://bakalavriat.fa.ru/",
+      egeSubjects: "математика + (информатика/общ/ист/ин.яз) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: 300000,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "информатика принимается как альтернатива общ",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "Бизнес+IT", starAIDS: 2, starBusiness: 4, filters: ["business"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    // ───────────────────────────── МГТУ им. Баумана ─────────────────────────────
+    {
+      id: 60, vuz: "МГТУ им. Баумана", faculty: "Факультет 'Информатика, ИИ и системы управления' (ИУ)",
+      name: "Информатика и вычислительная техника", code: "09.03.01",
+      city: "Москва", campus: "2-я Бауманская, 5", campusFar: false,
+      url: "https://bmstu.ru/bachelor/majors/informatika-i-vycislitelnaa-tehnika-090301",
+      egeSubjects: "математика + (информатика/физика) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: null,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "ИВТ", starAIDS: 4, starBusiness: 1, filters: ["it", "ai"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 61, vuz: "МГТУ им. Баумана", faculty: "Факультет ИУ",
+      name: "Программная инженерия", code: "09.03.04",
+      city: "Москва", campus: "2-я Бауманская, 5", campusFar: false,
+      url: "https://bmstu.ru/bachelor",
+      egeSubjects: "математика + (информатика/физика) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: null,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "Программирование / ПО ИИ", starAIDS: 4, starBusiness: 1, filters: ["it", "ai"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 62, vuz: "МГТУ им. Баумана", faculty: "Факультет 'Фундаментальные науки' (ФН)",
+      name: "Прикладная математика и информатика", code: "01.03.02",
+      city: "Москва", campus: "2-я Бауманская, 5", campusFar: false,
+      url: "https://bmstu.ru/bachelor",
+      egeSubjects: "математика + (информатика/физика) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: null,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "ПМиИ", starAIDS: 4, starBusiness: 1, filters: ["ai", "ds", "it"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    // ────────────────────────────── РАНХиГС Москва ──────────────────────────────
+    {
+      id: 63, vuz: "РАНХиГС Москва", faculty: "ИЭМИТ",
+      name: "Бизнес-информатика", code: "38.03.05",
+      city: "Москва", campus: "пр. Вернадского, 82", campusFar: false,
+      url: "https://www.ranepa.ru/bakalavriat/napravleniya-i-programmy/010256/",
+      egeSubjects: "математика + (информатика/общ) + русский", egeFits: true, needsObsh: false,
+      minScores: { math: 60 },
+      budget: 17, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: 73, noPaidSeats: false, priceYear: 485000,
+      prokhBudget: 283, prokhBudgetApprox: false, prokhBudgetNote: "официальный ranepa.ru: 'Проходной балл 2025 бюджет 283'",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "Бизнес+IT", starAIDS: 2, starBusiness: 4, filters: ["business", "ds"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 64, vuz: "РАНХиГС Москва", faculty: "ИЭМИТ",
+      name: "Прикладная информатика: Искусственный интеллект и машинное обучение", code: "09.03.03",
+      city: "Москва", campus: "пр. Вернадского, 82", campusFar: false,
+      url: "https://www.ranepa.ru/bakalavriat/napravleniya-i-programmy/010248/",
+      egeSubjects: "математика + (информатика/физика) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 22, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: 68, noPaidSeats: false, priceYear: 440000,
+      prokhBudget: 253, prokhBudgetApprox: false, prokhBudgetNote: "официальный ranepa.ru: 'Проходной балл 2025 · 253'",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "ИИ / ML", starAIDS: 4, starBusiness: 2, filters: ["ai", "ds", "it"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    // ───────────────────────────────── НИУ МИЭТ ─────────────────────────────────
+    {
+      id: 65, vuz: "НИУ МИЭТ", faculty: "Институт системной и программной инженерии и ИТ",
+      name: "Информатика и вычислительная техника", code: "09.03.01",
+      city: "Москва", campus: "Зеленоград, пл. Шокина, 1", campusFar: true,
+      url: "https://miet.ru/page/65015",
+      egeSubjects: "математика + (информатика/физика) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: 314000,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: "официальные баллы 2021-2025 на abiturient.ru/page/14373",
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "ИВТ", starAIDS: 3, starBusiness: 1, filters: ["it", "ai"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    {
+      id: 66, vuz: "НИУ МИЭТ", faculty: "Институт физики и прикладной математики",
+      name: "Прикладная математика", code: "01.03.04",
+      city: "Москва", campus: "Зеленоград, пл. Шокина, 1", campusFar: true,
+      url: "https://miet.ru/page/65015",
+      egeSubjects: "математика + (информатика/физика) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: 38, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: 100, noPaidSeats: false, priceYear: 127500,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: 2025, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: false,
+      profileLabel: "Прикладная математика", starAIDS: 3, starBusiness: 1, filters: ["ai", "ds"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
+    },
+    // ──────────────────────────────────── ГУУ ────────────────────────────────────
+    {
+      id: 67, vuz: "ГУУ", faculty: "Институт информационных систем управления",
+      name: "Бизнес-информатика", code: "38.03.05",
+      city: "Москва", campus: "Рязанский пр., 99", campusFar: false,
+      url: "https://guu.ru/",
+      egeSubjects: "математика + (информатика/общ) + русский", egeFits: true, needsObsh: false,
+      minScores: null,
+      budget: null, quota: null, realEge: null, budgetOnlyBVI: false,
+      paid: null, noPaidSeats: false, priceYear: null,
+      prokhBudget: null, prokhBudgetApprox: true, prokhBudgetNote: null,
+      prokhPaid: null, prokhPaidApprox: true, prokhPaidYear: null, prokhPaidNote: null,
+      stipend: null, creditAvailable: true, creditPriceUnknown: true,
+      profileLabel: "Бизнес+IT", starAIDS: 1, starBusiness: 3, filters: ["business"],
+      egeCheckNeeded: true, unavailable: false, unavailableReason: null
     }
   ];
 
@@ -1234,8 +1833,16 @@
   ];
   const FILTER_PRIORITY = Object.fromEntries(PROFILE_OPTIONS.map(o => [o.key, o.priority]));
 
-  // Порядок вузов в фильтре — как в исходном списке данных
-  const VUZ_ORDER = ["ИТМО", "СПбГУ", "Политех", "ЛЭТИ", "ГУАП", "СПбГУТ", "СПбГЭУ", "РАНХиГС"];
+  // Порядок вузов в фильтре — СПб, затем Москва
+  const VUZ_ORDER = [
+    "ИТМО", "СПбГУ", "ВШЭ СПб", "СПбПУ Политех", "ЛЭТИ СПбГЭТУ", "ГУАП",
+    "СПбГУТ Бонч-Бруевича", "СПбГЭУ ФИНЭК", "РАНХиГС СПб СЗИУ",
+    "МФТИ", "ВШЭ Москва", "МИСИС", "МИРЭА РТУ", "РЭУ им. Плеханова",
+    "Финансовый университет", "МГТУ им. Баумана", "РАНХиГС Москва", "НИУ МИЭТ", "ГУУ"
+  ];
+
+  // Порядок городов в фильтре
+  const CITY_ORDER = ["Санкт-Петербург", "Москва"];
 
   const STORAGE_KEY = "postuplenie2026_v1";
 
@@ -1249,7 +1856,7 @@
   function loadState() {
     const defaults = {
       scores: { math: "", inf: "", rus: "", id: "" },
-      filters: { profiles: [], vuzes: [], onlyEge: false, onlyBudget: false, onlyRealistic: false },
+      filters: { profiles: [], vuzes: [], cities: [], onlyEge: false, onlyBudget: false, onlyRealistic: false },
       compareIds: []
     };
     try {
@@ -1272,6 +1879,7 @@
     filters: {
       profiles: new Set(loaded.filters.profiles),
       vuzes: new Set(loaded.filters.vuzes),
+      cities: new Set(loaded.filters.cities),
       onlyEge: !!loaded.filters.onlyEge,
       onlyBudget: !!loaded.filters.onlyBudget,
       onlyRealistic: !!loaded.filters.onlyRealistic
@@ -1290,6 +1898,7 @@
       filters: {
         profiles: Array.from(state.filters.profiles),
         vuzes: Array.from(state.filters.vuzes),
+        cities: Array.from(state.filters.cities),
         onlyEge: state.filters.onlyEge,
         onlyBudget: state.filters.onlyBudget,
         onlyRealistic: state.filters.onlyRealistic
@@ -1349,7 +1958,7 @@
     };
     if (!scores.hasScores) return result;
 
-    // Жёсткий гейт по минимальным баллам вуза (только СПбГУ ФМКН)
+    // Жёсткий гейт по минимальным баллам вуза (там, где вуз их задаёт)
     if (program.minScores) {
       const ms = program.minScores;
       const fails = [];
@@ -1427,6 +2036,8 @@
       if (state.filters.profiles.size && !p.filters.some(f => state.filters.profiles.has(f))) return false;
       // Фильтр по вузу
       if (state.filters.vuzes.size && !state.filters.vuzes.has(p.vuz)) return false;
+      // Фильтр по городу
+      if (state.filters.cities.size && !state.filters.cities.has(p.city)) return false;
       // Только программы, куда подходит ЕГЭ мат+инф+рус
       if (state.filters.onlyEge && !p.egeFits) return false;
       // Только с бюджетными местами
@@ -1488,7 +2099,7 @@
       badges.push(`<span class="badge grey">Платных мест нет</span>`);
     }
     if (program.campusFar) {
-      badges.push(`<span class="badge warn">📍 Петергоф — далеко от центра</span>`);
+      badges.push(`<span class="badge warn">📍 ${program.campus} — кампус далеко от центра</span>`);
     }
     if (program.stipend) {
       badges.push(`<span class="badge gold">💰 Стипендия ${fmtMoney(program.stipend)}/мес</span>`);
@@ -1511,8 +2122,9 @@
       prokhPaidText = (program.prokhPaidApprox ? "≈" : "") + program.prokhPaid;
       if (program.prokhPaidYear) prokhPaidText += ` (${program.prokhPaidYear})`;
     } else {
-      prokhPaidText = "—";
+      prokhPaidText = program.prokhPaidNote || "—";
     }
+    const prokhPaidRowClass = (program.prokhPaid == null && program.prokhPaidNote) ? "card-row note-row" : "card-row";
 
     // ── Цена ──
     const priceYearText = program.priceYear != null ? fmtMoney(program.priceYear) : "—";
@@ -1546,7 +2158,7 @@
         } else if (program.noPaidSeats) {
           statusHtml += `<div class="status-pill grey"><span>⚪ Платное: мест нет</span></div>`;
         } else if (program.prokhPaid == null) {
-          statusHtml += `<div class="status-pill grey"><span>⚪ Платное: нет данных о проходном</span></div>`;
+          statusHtml += `<div class="status-pill grey"><span>⚪ Платное: ${program.prokhPaidNote || "нет данных о проходном"}</span></div>`;
         }
       }
     }
@@ -1556,7 +2168,7 @@
         <div class="card-top">
           <div>
             <p class="card-title">${programNameHtml(program)}</p>
-            <p class="card-vuz">${program.vuz}${program.faculty ? " · " + program.faculty : ""}</p>
+            <p class="card-vuz">${program.vuz} · ${program.city}${program.faculty ? " · " + program.faculty : ""}</p>
             <p class="card-meta">${program.code} · ${program.campus}</p>
             <p class="card-meta">ЕГЭ: ${program.egeSubjects}</p>
           </div>
@@ -1571,7 +2183,7 @@
           <div class="card-row"><span class="k">Платных мест</span><span class="v">${paidTotal}</span></div>
           <div class="card-row"><span class="k">Реально по ЕГЭ</span><span class="v">${realEge}</span></div>
           <div class="card-row"><span class="k">Проходной бюджет</span><span class="v">${prokhBudgetText}</span></div>
-          <div class="card-row"><span class="k">Проходной платное</span><span class="v">${prokhPaidText}</span></div>
+          <div class="${prokhPaidRowClass}"><span class="k">Проходной платное</span><span class="v">${prokhPaidText}</span></div>
           <div class="card-row"><span class="k">Цена / год</span><span class="v">${priceYearText}</span></div>
           <div class="card-row"><span class="k">Цена / 4 года</span><span class="v">${price4Text}</span></div>
           <div class="card-row"><span class="k">Кредит 3% (РФ)</span><span class="v">${program.creditAvailable ? (program.creditPriceUnknown || program.priceYear == null ? "цену уточнять" : "доступен") : "неприменим"}</span></div>
@@ -1595,7 +2207,7 @@
   function onChipClick(e) {
     const type = e.currentTarget.dataset.type;
     const key = e.currentTarget.dataset.key;
-    const set = type === "profile" ? state.filters.profiles : state.filters.vuzes;
+    const set = type === "profile" ? state.filters.profiles : type === "city" ? state.filters.cities : state.filters.vuzes;
     if (set.has(key)) set.delete(key); else set.add(key);
     render();
   }
@@ -1606,6 +2218,12 @@
       `<span class="chip ${state.filters.profiles.has(opt.key) ? "active" : ""}" data-type="profile" data-key="${opt.key}">${opt.label}</span>`
     ).join("");
     profileBox.querySelectorAll(".chip").forEach(c => c.addEventListener("click", onChipClick));
+
+    const cityBox = document.getElementById("filterCity");
+    cityBox.innerHTML = CITY_ORDER.map(c =>
+      `<span class="chip ${state.filters.cities.has(c) ? "active" : ""}" data-type="city" data-key="${c}">${c}</span>`
+    ).join("");
+    cityBox.querySelectorAll(".chip").forEach(c => c.addEventListener("click", onChipClick));
 
     const vuzBox = document.getElementById("filterVuz");
     vuzBox.innerHTML = VUZ_ORDER.map(v =>
@@ -1779,7 +2397,7 @@
     }
     if (r.paid) return `${r.paid.icon} ${r.paid.label} (${marginText(r.paid.margin)})`;
     if (p.noPaidSeats) return "мест нет";
-    return "—";
+    return p.prokhPaidNote || "—";
   }
 
   function renderCompareModal() {
@@ -1797,7 +2415,7 @@
       ["Реально по ЕГЭ", p => p.budgetOnlyBVI ? "0 (только БВИ)" : (p.realEge ?? "—")],
       ["Платных мест", p => p.noPaidSeats ? "0" : (p.paid ?? "—")],
       ["Проходной бюджет", p => p.prokhBudget != null ? (p.prokhBudgetApprox ? "≈" : "") + p.prokhBudget : (p.prokhBudgetNote || "—")],
-      ["Проходной платное", p => p.prokhPaid != null ? (p.prokhPaidApprox ? "≈" : "") + p.prokhPaid + (p.prokhPaidYear ? ` (${p.prokhPaidYear})` : "") : "—"],
+      ["Проходной платное", p => p.prokhPaid != null ? (p.prokhPaidApprox ? "≈" : "") + p.prokhPaid + (p.prokhPaidYear ? ` (${p.prokhPaidYear})` : "") : (p.prokhPaidNote || "—")],
       ["Цена / год", p => p.priceYear != null ? fmtMoney(p.priceYear) : "—"],
       ["Цена / 4 года", p => p.priceYear != null ? fmtMoney(p.priceYear * 4) : "—"],
       ["Рейтинг ИИ/DS", p => "★".repeat(p.starAIDS) + "☆".repeat(5 - p.starAIDS)],
