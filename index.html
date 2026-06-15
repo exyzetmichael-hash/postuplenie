@@ -2099,7 +2099,9 @@
       badges.push(`<span class="badge grey">Платных мест нет</span>`);
     }
     if (program.campusFar) {
-      badges.push(`<span class="badge warn">📍 ${program.campus} — кампус далеко от центра</span>`);
+      // В бейдже — только узнаваемое название района/города (адрес целиком уже есть в card-meta)
+      const campusShort = program.campus.split(",")[0].trim();
+      badges.push(`<span class="badge warn">📍 ${campusShort} — кампус далеко от центра</span>`);
     }
     if (program.stipend) {
       badges.push(`<span class="badge gold">💰 Стипендия ${fmtMoney(program.stipend)}/мес</span>`);
